@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>RustCraft: Survival Engineer — Complete HTML</title>
+<style>
+:root{
+  --glass:rgba(7,14,22,.82);--line:rgba(255,255,255,.14);--txt:#eff8ff;--muted:#a9becb;
+  --accent:#65ddff;--good:#67ee96;--warn:#ffd569;--bad:#ff7272;--panel:#0a1722
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111a;color:var(--txt);
+font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#game{position:fixed;inset:0}
+canvas{display:block}
+.panel{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);box-shadow:0 15px 38px rgba(0,0,0,.28);border-radius:15px}
+.hud{position:fixed;inset:0;pointer-events:none}
+.top{position:absolute;left:12px;right:12px;top:12px;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.brand{padding:11px 14px;min-width:315px}
+.brand b{font-size:17px;letter-spacing:.3px}.brand small{display:block;color:var(--muted);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(75px,1fr));gap:6px;padding:7px}
+.stat{padding:7px 9px;background:rgba(255,255,255,.055);border-radius:10px}.stat b{display:block;font-size:15px}.stat span{font-size:8.5px;text-transform:uppercase;color:var(--muted);letter-spacing:.65px}
+.left{position:absolute;left:12px;top:91px;width:340px;display:flex;flex-direction:column;gap:8px}
+.mission,.scanner,.inventory{padding:11px 13px}.label{font-size:9px;text-transform:uppercase;color:var(--accent);font-weight:900;letter-spacing:1px}
+.mission h3{font-size:14px;margin:4px 0}.mission p,.tiny{font-size:10.5px;line-height:1.42;color:#d6e5ee;margin:0}
+.progress{height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:8px}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--good),var(--accent));transition:.2s}
+.scanner h4,.inventory h4{margin:0 0 6px;font-size:10px;letter-spacing:.8px}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06)}.row:last-child{border:0}.row b{text-align:right}
+.right{position:absolute;right:12px;top:91px;width:280px;padding:11px 13px}
+.right h3{font-size:13px;margin:0 0 7px}.right p{font-size:10px;line-height:1.4;color:#d7e5ed;margin:5px 0}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;pointer-events:auto}
+button{border:0;border-radius:10px;padding:9px 10px;font-weight:850;cursor:pointer}.primary{background:var(--accent);color:#06202a}.secondary{background:#1a2b38;color:#f1f9ff;border:1px solid rgba(255,255,255,.12)}.danger{background:#54252a;color:#ffe5e7;border:1px solid rgba(255,114,114,.22)}
+.hotbar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:7px;pointer-events:auto;max-width:94vw;overflow:auto}
+.slot{min-width:92px;padding:7px;border:1px solid transparent;border-radius:10px;background:rgba(255,255,255,.05);text-align:center;cursor:pointer}.slot.active{border-color:var(--accent);background:rgba(101,221,255,.12)}.slot b{display:block;font-size:11px}.slot small{font-size:8.5px;color:var(--muted)}
+.help{position:absolute;left:12px;bottom:12px;padding:7px 9px;font-size:9.5px;color:#d4e4ee}
+.cross{position:absolute;left:50%;top:50%;width:15px;height:15px;transform:translate(-50%,-50%);opacity:.8}.cross:before,.cross:after{content:"";position:absolute;background:#fff}.cross:before{width:2px;height:15px;left:6.5px}.cross:after{height:2px;width:15px;top:6.5px}
+.toast{position:absolute;left:50%;top:17%;transform:translateX(-50%) translateY(-10px);padding:10px 14px;min-width:300px;text-align:center;opacity:0;transition:.22s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast b{font-size:12px}.toast small{display:block;color:#c9dbe5;margin-top:3px}
+.start,.modal{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(11,27,43,.42),rgba(3,7,12,.9));pointer-events:auto}
+.card{width:min(790px,93vw);max-height:90vh;overflow:auto;padding:23px;border-radius:23px;background:rgba(4,12,20,.94);border:1px solid rgba(255,255,255,.15);box-shadow:0 35px 95px rgba(0,0,0,.5)}
+.card h1,.card h2{margin:0 0 9px;line-height:1}.card h1{font-size:34px}.card p{color:#cfe0ea;line-height:1.5;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.chip{padding:9px;border-radius:10px;background:rgba(255,255,255,.055);font-size:10.5px}.chem{padding:10px 11px;border-radius:11px;background:rgba(103,238,150,.06);border:1px solid rgba(103,238,150,.18);font-size:10.5px;color:#e5ffeb;line-height:1.5}
+.xr{position:absolute;right:12px;bottom:12px;display:flex;gap:6px;pointer-events:auto}.xr button{background:rgba(7,15,23,.84);color:#fff;border:1px solid rgba(255,255,255,.15);padding:8px 9px}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:rgba(101,221,255,.1);border:1px solid rgba(101,221,255,.2);font-size:9px;color:#cbf5ff}
+#fallback{display:none;position:fixed;inset:0;background:linear-gradient(#8cc7e5 0 55%,#5e7c42 55% 100%);z-index:99;padding:24px;color:#09202c}
+#fallback .box{max-width:720px;margin:60px auto;background:rgba(255,255,255,.92);padding:24px;border-radius:18px;box-shadow:0 25px 60px rgba(0,0,0,.2)}
+#fallback h2{margin-top:0}.fallback-city{height:180px;position:relative;margin-top:18px;border-radius:12px;overflow:hidden;background:linear-gradient(#78b9df 0 55%,#357e9f 55%)}
+.fallback-city i{position:absolute;bottom:45%;background:#556874;width:50px;border-radius:3px 3px 0 0}
+.mobile{display:none;position:absolute;left:10px;right:10px;bottom:10px;justify-content:space-between;pointer-events:auto}.grp{display:flex;gap:6px}.mobile button{width:54px;height:46px;padding:0;background:rgba(7,15,23,.84);color:#fff;border:1px solid rgba(255,255,255,.14)}
+@media(max-width:980px){
+ .brand{min-width:0}.brand small{display:none}.stats{grid-template-columns:repeat(3,76px)}.stats .stat:nth-child(4),.stats .stat:nth-child(5){display:none}
+ .left{top:86px;width:290px}.scanner{display:none}.right{display:none}.help{display:none}.hotbar{bottom:67px}.mobile{display:flex}.xr{bottom:118px}.card h1{font-size:27px}.grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<div id="fallback">
+  <div class="box">
+    <h2>3D library could not load</h2>
+    <p>The HTML itself is working, but the browser could not download Three.js. This usually happens when an online preview blocks external JavaScript.</p>
+    <p><b>Fix:</b> open this HTML using Chrome/Edge with internet access, or run it with VS Code Live Server / <code>python -m http.server 8000</code>. The game now shows this diagnostic instead of a blank “visualization error”.</p>
+    <div class="fallback-city">
+      <i style="left:7%;height:95px"></i><i style="left:18%;height:70px"></i><i style="left:31%;height:120px"></i>
+      <i style="left:48%;height:82px"></i><i style="left:64%;height:112px"></i><i style="left:80%;height:65px"></i>
+    </div>
+  </div>
+</div>
+
+<div class="hud" id="hud">
+  <div class="top">
+    <div class="brand panel"><b>🧱 RUSTCRAFT: SURVIVAL ENGINEER</b><small>Open-world corrosion engineering • complete single-HTML build</small></div>
+    <div class="stats panel">
+      <div class="stat"><b id="year">0</b><span>Years</span></div>
+      <div class="stat"><b id="blockCount">0</b><span>Builds</span></div>
+      <div class="stat"><b id="integrity">100%</b><span>Integrity</span></div>
+      <div class="stat"><b id="xp">0</b><span>XP</span></div>
+      <div class="stat"><b id="weatherStat">Rain</b><span>Weather</span></div>
+    </div>
+  </div>
+
+  <div class="left">
+    <div class="mission panel">
+      <div class="label">Main challenge</div>
+      <h3 id="missionTitle">Build a city that survives 10 years</h3>
+      <p id="missionText">Build in different environments, protect the steel, complete the factory and ship experiments, then simulate at least 10 years.</p>
+      <div class="progress"><i id="missionProgress"></i></div>
+    </div>
+    <div class="scanner panel">
+      <h4>◉ SCANNER</h4>
+      <div class="row"><span>Target</span><b id="scanTarget">None</b></div>
+      <div class="row"><span>Environment</span><b id="scanEnv">—</b></div>
+      <div class="row"><span>Protection</span><b id="scanProtection">—</b></div>
+      <div class="row"><span>Moisture</span><b id="scanWater">—</b></div>
+      <div class="row"><span>Salt</span><b id="scanSalt">—</b></div>
+      <div class="row"><span>Integrity</span><b id="scanIntegrity">—</b></div>
+      <div class="row"><span>Explanation</span><b id="scanWhy">Aim at a block</b></div>
+    </div>
+    <div class="inventory panel">
+      <h4>◫ INVENTORY</h4>
+      <div class="row"><span>Steel</span><b id="invSteel">30</b></div>
+      <div class="row"><span>Paint</span><b id="invPaint">18</b></div>
+      <div class="row"><span>Zinc</span><b id="invZinc">12</b></div>
+      <div class="row"><span>Magnesium</span><b id="invMg">10</b></div>
+    </div>
+  </div>
+
+  <div class="right panel">
+    <h3>World controls</h3>
+    <p><span class="badge">G</span> Galvanizing factory &nbsp; <span class="badge">H</span> Harbor ship test</p>
+    <p><span class="badge">N</span> Nano portal &nbsp; <span class="badge">C</span> Compare experiment</p>
+    <p><span class="badge">T</span> +1 year &nbsp; <span class="badge">Y</span> +5 years</p>
+    <div class="btns">
+      <button class="primary" id="year1">+1 YEAR</button>
+      <button class="primary" id="year5">+5 YEARS</button>
+      <button class="secondary" id="weatherBtn">CHANGE WEATHER</button>
+      <button class="secondary" id="dayBtn">DAY / NIGHT</button>
+      <button class="secondary" id="factoryBtn">FACTORY</button>
+      <button class="secondary" id="shipBtn">SHIP LAB</button>
+      <button class="secondary" id="nanoBtn">NANO WORLD</button>
+      <button class="danger" id="resetBtn">RESET WORLD</button>
+    </div>
+  </div>
+
+  <div class="hotbar panel">
+    <div class="slot active" data-kind="steel"><b>1 • Steel</b><small>unprotected</small></div>
+    <div class="slot" data-kind="paint"><b>2 • Painted</b><small>barrier</small></div>
+    <div class="slot" data-kind="zinc"><b>3 • Galvanized</b><small>zinc coat</small></div>
+    <div class="slot" data-kind="mg"><b>4 • Steel + Mg</b><small>sacrificial</small></div>
+    <div class="slot" data-kind="concrete"><b>5 • Concrete</b><small>support</small></div>
+    <div class="slot" data-kind="beam"><b>6 • Beam</b><small>bridge piece</small></div>
+    <div class="slot" data-kind="pipe"><b>7 • Pipe</b><small>pipeline</small></div>
+  </div>
+
+  <div class="help panel">WASD move • mouse look • Space jump • click place • right-click remove • E scan • F repair/apply • Q/R rotate • Shift sprint</div>
+  <div class="cross"></div>
+  <div class="toast panel" id="toast"><b></b><small></small></div>
+  <div class="xr"><button id="vrBtn">VR</button><button id="arBtn">AR</button></div>
+
+  <div class="mobile">
+    <div class="grp"><button id="mL">◀</button><button id="mF">▲</button><button id="mR">▶</button></div>
+    <div class="grp"><button id="mScan">SCAN</button><button id="mBuild">BUILD</button></div>
+  </div>
+
+  <div class="start" id="startScreen">
+    <div class="card">
+      <h1>RustCraft: Survival Engineer</h1>
+      <p>Walk through a 3D island, build structures, expose metals to different environments, operate a galvanizing factory, protect a ship with sacrificial magnesium, enter a microscopic redox world, and accelerate years to see the consequences.</p>
+      <div class="grid">
+        <div class="chip"><b>Open-world building</b><br>Stack blocks, beams and pipes.</div>
+        <div class="chip"><b>Dynamic weather</b><br>Rain, salt storm, clear sky.</div>
+        <div class="chip"><b>Corrosion simulation</b><br>Visible rust + integrity loss.</div>
+        <div class="chip"><b>Galvanizing factory</b><br>Clean → zinc coat → test.</div>
+        <div class="chip"><b>Harbor ship lab</b><br>Test sacrificial magnesium.</div>
+        <div class="chip"><b>Nano redox world</b><br>Watch Fe lose electrons.</div>
+      </div>
+      <div class="chem"><b>Concept-based, not quiz-based:</b> the student learns by changing moisture, salt exposure and protection, then watching the material respond. Paint blocks contact with water/oxygen; zinc and magnesium protect by their greater tendency to oxidize compared with iron.</div>
+      <p style="font-size:10.5px"><b>Important:</b> if an embedded preview blocks Three.js, this version shows a clear diagnostic instead of a broken visualization. For full 3D, open the file in Chrome/Edge with internet access or through Live Server.</p>
+      <button class="primary" id="startBtn">ENTER THE WORLD</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" style="display:none">
+    <div class="card" id="modalCard"></div>
+  </div>
+</div>
+
+<script type="module">
+(async()=>{
+  let THREE;
+  try{
+    THREE = await import('https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js');
+  }catch(err){
+    console.error('Three.js failed to load:',err);
+    document.getElementById('hud').style.display='none';
+    document.getElementById('fallback').style.display='block';
+    return;
+  }
+
+  // ---------- Scene ----------
+  const root=document.getElementById('game');
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x88c5e5);
+  scene.fog=new THREE.FogExp2(0xa5cedf,.0105);
+
+  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.xr.enabled=true;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.03;
+  root.appendChild(renderer.domElement);
+
+  const camera=new THREE.PerspectiveCamera(67,innerWidth/innerHeight,.1,500);
+  camera.position.set(0,4.3,8);
+
+  const hemi=new THREE.HemisphereLight(0xeaffff,0x465438,2.5);scene.add(hemi);
+  const sun=new THREE.DirectionalLight(0xffffff,3.2);sun.position.set(-22,34,16);sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);
+  const moon=new THREE.DirectionalLight(0x7897ff,.0);moon.position.set(20,25,-18);scene.add(moon);
+
+  const C={
+    grass:0x587842,sand:0xd1bf88,dry:0xa58e59,industrial:0x666a68,steel:0x788993,
+    paint:0x1e84bd,zinc:0xc4ced2,mg:0xdfddca,concrete:0x8c9295,rust:0x9e4e22,water:0x2c85a8
+  };
+  const material=(c,metal=.1,rough=.8)=>new THREE.MeshStandardMaterial({color:c,metalness:metal,roughness:rough});
+  const baseMaterials={
+    grass:material(C.grass,0,.96),sand:material(C.sand,0,.96),dry:material(C.dry,0,.98),industrial:material(C.industrial,.05,.92),
+    steel:material(C.steel,.78,.4),paint:material(C.paint,.38,.34),zinc:material(C.zinc,.82,.28),mg:material(C.mg,.5,.42),
+    concrete:material(C.concrete,.02,.92),beam:material(C.steel,.78,.4),pipe:material(C.steel,.78,.4)
+  };
+  const rustColor=new THREE.Color(C.rust);
+  const baseColors={steel:new THREE.Color(C.steel),paint:new THREE.Color(C.paint),zinc:new THREE.Color(C.zinc),mg:new THREE.Color(C.mg),concrete:new THREE.Color(C.concrete),beam:new THREE.Color(C.steel),pipe:new THREE.Color(C.steel)};
+
+  const world=new THREE.Group();scene.add(world);
+  function addBox(w,h,d,mat,x,y,z,parent=world){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;parent.add(m);return m;
+  }
+  function addCylinder(r,h,mat,x,y,z,parent=world){
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;parent.add(m);return m;
+  }
+
+  // ---------- Terrain ----------
+  const ground=addBox(86,1.1,86,baseMaterials.grass,0,-.55,0);
+  const coast=addBox(27,.15,86,baseMaterials.sand,-29,.06,0);
+  const dry=addBox(24,.17,35,baseMaterials.dry,27,.08,-21);
+  const industrial=addBox(24,.17,31,baseMaterials.industrial,27,.09,22);
+
+  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(280,280),material(C.water,.05,.2));
+  ocean.rotation.x=-Math.PI/2;ocean.position.set(-78,-1.2,0);scene.add(ocean);
+
+  // Roads
+  addBox(8,.08,82,material(0x2f363c,.15,.85),3,.11,0);
+  addBox(82,.08,7,material(0x2f363c,.15,.85),0,.12,4);
+
+  // Trees / rocks
+  for(let i=0;i<46;i++){
+    const x=THREE.MathUtils.randFloat(-13,38),z=THREE.MathUtils.randFloat(-39,39);
+    if(x>14&&z>5)continue;
+    addBox(.32,1.8,.32,material(0x6e5433,0,1),x,.9,z);
+    const crown=new THREE.Mesh(new THREE.ConeGeometry(1.0,2.3,7),material(0x416c38,0,1));crown.position.set(x,2.6,z);crown.castShadow=true;world.add(crown);
+  }
+  for(let i=0;i<20;i++){
+    const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(THREE.MathUtils.randFloat(.4,1),0),material(0x897753,0,1));
+    rock.position.set(THREE.MathUtils.randFloat(17,38),THREE.MathUtils.randFloat(.25,.5),THREE.MathUtils.randFloat(-37,-7));rock.castShadow=true;world.add(rock);
+  }
+
+  // ---------- Special zones ----------
+  const factory=new THREE.Group();factory.position.set(27,0,22);scene.add(factory);
+  addBox(10,5,8,material(0x52616a,.48,.62),0,2.5,0,factory);
+  addCylinder(.7,8,material(0x454d51,.65,.55),-3.1,4,2.3,factory);
+  const zincVat=new THREE.Mesh(new THREE.BoxGeometry(4,1.2,3),material(0xb5c2c8,.82,.25));zincVat.position.set(3,.6,2.7);factory.add(zincVat);
+  const vatLiquid=new THREE.Mesh(new THREE.PlaneGeometry(3.6,2.6),new THREE.MeshStandardMaterial({color:0xcbd6d8,metalness:.9,roughness:.12,emissive:0x25343a,emissiveIntensity:.3}));
+  vatLiquid.rotation.x=-Math.PI/2;vatLiquid.position.set(3,1.22,2.7);factory.add(vatLiquid);
+
+  const harbor=new THREE.Group();harbor.position.set(-29,0,24);scene.add(harbor);
+  const shipHull=new THREE.Mesh(new THREE.BoxGeometry(10,2.5,4),material(0x475d67,.8,.43));shipHull.position.set(-5,-.1,0);shipHull.castShadow=true;harbor.add(shipHull);
+  const shipDeck=addBox(7,1.2,3,material(0xe6e8e2,.1,.7),-5,1.7,0,harbor);
+  const shipMg=new THREE.Mesh(new THREE.BoxGeometry(.7,.4,2.4),material(C.mg,.5,.42));shipMg.position.set(-5,-1.6,1.8);shipMg.visible=false;harbor.add(shipMg);
+
+  const portal=new THREE.Group();portal.position.set(27,.1,-22);scene.add(portal);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(2.2,.22,16,48),new THREE.MeshStandardMaterial({color:0x62e4ff,emissive:0x147a9b,emissiveIntensity:2,metalness:.2,roughness:.2}));
+  ring.position.y=2.4;portal.add(ring);
+  const portalCore=new THREE.Mesh(new THREE.CircleGeometry(1.9,48),new THREE.MeshBasicMaterial({color:0x53c8ff,transparent:true,opacity:.25,side:THREE.DoubleSide}));
+  portalCore.position.y=2.4;portal.add(portalCore);
+
+  function makeSign(text,x,z){
+    const c=document.createElement('canvas');c.width=512;c.height=128;const ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(5,12,18,.85)';ctx.fillRect(0,0,512,128);ctx.strokeStyle='#65ddff';ctx.lineWidth=5;ctx.strokeRect(3,3,506,122);
+    ctx.fillStyle='#fff';ctx.font='bold 32px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,64);
+    const tex=new THREE.CanvasTexture(c),spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    spr.scale.set(7.5,1.85,1);spr.position.set(x,3.1,z);scene.add(spr);
+  }
+  makeSign('COASTAL SALT ZONE',-29,-6);
+  makeSign('GALVANIZING FACTORY',27,16);
+  makeSign('HARBOR SHIP LAB',-29,18);
+  makeSign('NANO REDOX PORTAL',27,-29);
+
+  // ---------- Player ----------
+  const player=new THREE.Group();scene.add(player);
+  const body=addBox(.85,1.25,.55,material(0x21c6dc,.14,.42),0,1.18,0,player);
+  const head=addBox(.66,.66,.66,material(0xe1bb96,0,.8),0,2.15,0,player);
+  const visor=addBox(.56,.17,.05,material(0x122b38,.55,.2),0,2.23,.355,player);
+  const backpack=addBox(.62,.75,.28,material(0x31434c,.7,.42),0,1.23,-.42,player);
+  const legL=addBox(.28,.85,.3,material(0x24313b,.1,.7),-.22,.43,0,player);
+  const legR=addBox(.28,.85,.3,material(0x24313b,.1,.7),.22,.43,0,player);
+  player.position.set(0,0,12);
+
+  // ---------- State ----------
+  const state={
+    started:false,selected:'steel',rotation:0,years:0,xp:0,weather:'rain',day:true,
+    grounded:true,yVel:0,target:null,factoryDone:false,shipDone:false,nanoDone:false,compareDone:false,
+    inventory:{steel:30,paint:18,zinc:12,mg:10},builds:[],keys:{},yaw:0,pitch:-.24,
+    pointerLocked:false,weatherIndex:0
+  };
+  const weatherModes=[
+    {name:'Rain',rain:true,salt:false,factor:1.18,sky:0x88c5e5,fog:0xa5cedf},
+    {name:'Salt storm',rain:true,salt:true,factor:1.55,sky:0x7898a8,fog:0x92a5aa},
+    {name:'Clear',rain:false,salt:false,factor:.84,sky:0x8dcbea,fog:0xb3d8e6}
+  ];
+
+  function environmentAt(x,z){
+    if(x<-15)return {name:'Coastal salt zone',water:1,salt:1,pollution:.12,base:.95};
+    if(x>15&&z<-5)return {name:'Dry ridge',water:.2,salt:.03,pollution:.03,base:.23};
+    if(x>15&&z>7)return {name:'Industrial zone',water:.68,salt:.12,pollution:.95,base:.76};
+    return {name:'Grassland',water:.53,salt:.07,pollution:.06,base:.46};
+  }
+  const protection={steel:1,beam:1,pipe:1,paint:.19,zinc:.11,mg:.09,concrete:.015};
+  function kindLabel(k){return {steel:'Bare steel',paint:'Painted steel',zinc:'Galvanized steel',mg:'Steel + magnesium',concrete:'Concrete',beam:'Steel beam',pipe:'Steel pipe'}[k]}
+  function inventoryKey(k){return k==='beam'||k==='pipe'?'steel':k==='concrete'?null:k}
+  function explain(b){
+    const e=environmentAt(b.mesh.position.x,b.mesh.position.z);
+    if(b.kind==='paint')return 'Barrier coating limits contact with water and oxygen.';
+    if(b.kind==='zinc')return 'Zinc protects the steel and can oxidize preferentially where coating is damaged.';
+    if(b.kind==='mg')return 'Magnesium is the sacrificial metal and oxidizes more readily than iron.';
+    if(b.kind==='concrete')return 'Concrete itself does not rust like iron/steel.';
+    if(e.salt>.8)return 'Bare steel is in a wet, salty electrolyte: corrosion is strongly accelerated.';
+    if(e.pollution>.8)return 'Moist industrial air increases corrosion severity.';
+    if(e.water<.3)return 'Low moisture slows the electrochemical corrosion process.';
+    return 'Water and oxygen are available, so unprotected steel corrodes gradually.';
+  }
+
+  // ---------- Building ----------
+  function geometryFor(k){
+    if(k==='beam')return new THREE.BoxGeometry(4.6,.55,.7);
+    if(k==='pipe')return new THREE.CylinderGeometry(.42,.42,4.2,18);
+    return new THREE.BoxGeometry(1.5,1.5,1.5);
+  }
+  function canSpend(k){
+    const ik=inventoryKey(k);if(!ik)return true;
+    return state.inventory[ik]>0;
+  }
+  function spend(k){
+    const ik=inventoryKey(k);if(ik)state.inventory[ik]--;
+  }
+  function refund(k){
+    const ik=inventoryKey(k);if(ik)state.inventory[ik]++;
+  }
+  function placeBuild(point,normal=new THREE.Vector3(0,1,0)){
+    if(!canSpend(state.selected)){toast('Inventory empty',`Collect or reuse ${kindLabel(state.selected)} materials.`);return;}
+    const k=state.selected;
+    const gx=Math.round(point.x/1.55)*1.55,gz=Math.round(point.z/1.55)*1.55;
+    let y=Math.max(.78,point.y+.76);
+    if(k==='beam')y=Math.max(.45,point.y+.28);
+    if(k==='pipe')y=Math.max(.55,point.y+.45);
+    const geo=geometryFor(k),m=baseMaterials[k].clone(),mesh=new THREE.Mesh(geo,m);
+    mesh.position.set(gx,y,gz);mesh.rotation.y=state.rotation;
+    if(k==='pipe')mesh.rotation.z=Math.PI/2;
+    mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
+    const b={mesh,kind:k,health:100,age:0,rust:0,repaired:0};mesh.userData.build=b;state.builds.push(b);spend(k);state.xp+=8;
+    toast('Built',`${kindLabel(k)} placed in ${environmentAt(gx,gz).name}.`);updateUI();
+  }
+  function removeBuild(b){
+    if(!b)return;refund(b.kind);scene.remove(b.mesh);b.mesh.geometry.dispose();b.mesh.material.dispose();
+    const i=state.builds.indexOf(b);if(i>=0)state.builds.splice(i,1);if(state.target===b)state.target=null;updateScanner();updateUI();toast('Removed','Material returned to inventory.');
+  }
+
+  // ---------- Corrosion ----------
+  function averageIntegrity(){
+    const a=state.builds.filter(b=>b.kind!=='concrete');if(!a.length)return 100;
+    return a.reduce((s,b)=>s+b.health,0)/a.length;
+  }
+  function simulate(n){
+    if(!state.started)return;
+    const w=weatherModes[state.weatherIndex];
+    state.years+=n;
+    for(const b of state.builds){
+      if(b.kind==='concrete')continue;
+      const e=environmentAt(b.mesh.position.x,b.mesh.position.z);
+      const saltBoost=1+e.salt*.72+(w.salt?.35:0);
+      const pollutionBoost=1+e.pollution*.34;
+      const annual=7.0*e.base*w.factor*saltBoost*pollutionBoost*(protection[b.kind]||1);
+      const damage=annual*n*(.9+Math.random()*.2);
+      b.health=Math.max(0,b.health-damage);b.age+=n;b.rust=1-b.health/100;
+      const t=Math.min(.95,b.rust*.95);
+      b.mesh.material.color.copy(baseColors[b.kind]).lerp(rustColor,t);
+      b.mesh.material.roughness=Math.min(1,(baseMaterials[b.kind].roughness||.5)+b.rust*.35);
+      if(b.kind==='mg')b.mesh.scale.y=Math.max(.58,1-b.age*.012);
+    }
+    // ship experiment: Mg protects the hull if installed
+    if(state.shipDone){
+      shipHull.material.color.lerp(new THREE.Color(0x62777e),.08);
+      shipMg.scale.x=Math.max(.4,shipMg.scale.x-n*.02);
+    }else{
+      shipHull.material.color.lerp(rustColor,Math.min(.22,n*.02));
+    }
+    state.xp+=Math.min(100,state.builds.length*n*1.4);
+    toast(`Time advanced: ${n} year${n>1?'s':''}`,`Weather: ${w.name}. Compare protected and unprotected metal.`);
+    updateScanner();updateUI();checkCompletion();
+  }
+  function repairTarget(){
+    const b=state.target;if(!b){toast('No target','Aim at a built metal piece and press E first.');return;}
+    if(b.kind==='concrete'){toast('No corrosion repair needed','Concrete is being used as a structural support.');return;}
+    const chosen=state.selected;
+    if(!['paint','zinc','mg'].includes(chosen)){toast('Choose a protection tool','Select Painted, Galvanized or Steel + Mg first.');return;}
+    if(!canSpend(chosen)){toast('Inventory empty','No protection material remaining.');return;}
+    spend(chosen);b.kind=chosen;b.health=Math.min(100,b.health+22);b.rust=1-b.health/100;b.mesh.material=baseMaterials[chosen].clone();state.xp+=80;
+    toast('Protection applied',explain(b));updateScanner();updateUI();
+  }
+
+  // ---------- Scanner ----------
+  const raycaster=new THREE.Raycaster(),center=new THREE.Vector2(0,0);
+  function findTarget(){
+    raycaster.setFromCamera(center,camera);
+    const hits=raycaster.intersectObjects(state.builds.map(b=>b.mesh),false);
+    state.target=hits.length?hits[0].object.userData.build:null;updateScanner();
+  }
+  function updateScanner(){
+    const q=id=>document.getElementById(id),b=state.target;
+    if(!b){q('scanTarget').textContent='None';q('scanEnv').textContent='—';q('scanProtection').textContent='—';q('scanWater').textContent='—';q('scanSalt').textContent='—';q('scanIntegrity').textContent='—';q('scanWhy').textContent='Aim at a block';return;}
+    const e=environmentAt(b.mesh.position.x,b.mesh.position.z),lvl=v=>v>.82?'VERY HIGH':v>.57?'HIGH':v>.3?'MEDIUM':'LOW';
+    q('scanTarget').textContent=kindLabel(b.kind);q('scanEnv').textContent=e.name;q('scanProtection').textContent=kindLabel(b.kind);
+    q('scanWater').textContent=lvl(e.water);q('scanSalt').textContent=lvl(e.salt);q('scanIntegrity').textContent=b.health.toFixed(0)+'%';q('scanWhy').textContent=explain(b);
+  }
+
+  // ---------- Weather ----------
+  const rainGeo=new THREE.BufferGeometry(),rainPos=new Float32Array(1500*3);
+  for(let i=0;i<1500;i++){rainPos[i*3]=THREE.MathUtils.randFloatSpread(95);rainPos[i*3+1]=THREE.MathUtils.randFloat(1,32);rainPos[i*3+2]=THREE.MathUtils.randFloatSpread(95)}
+  rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+  const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0xd4f1ff,size:.055,transparent:true,opacity:.65}));scene.add(rain);
+
+  function cycleWeather(){
+    state.weatherIndex=(state.weatherIndex+1)%weatherModes.length;const w=weatherModes[state.weatherIndex];
+    rain.visible=w.rain;scene.background.setHex(w.sky);scene.fog.color.setHex(w.fog);
+    toast(`Weather: ${w.name}`,w.salt?'Salt spray creates a highly conductive corrosive environment.':w.rain?'Moisture supports corrosion.':'Dryer conditions slow corrosion.');
+    updateUI();
+  }
+  function toggleDay(){
+    state.day=!state.day;
+    sun.intensity=state.day?3.2:.25;moon.intensity=state.day?0:2.1;hemi.intensity=state.day?2.5:.7;
+    renderer.toneMappingExposure=state.day?1.03:.68;
+    if(!state.day)scene.background.setHex(0x14243a);else scene.background.setHex(weatherModes[state.weatherIndex].sky);
+    toast(state.day?'Day cycle':'Night cycle','Environmental simulation continues through time.');
+  }
+
+  // ---------- Special learning activities ----------
+  function modal(html){
+    document.getElementById('modalCard').innerHTML=html;document.getElementById('modal').style.display='grid';
+    document.exitPointerLock?.();
+  }
+  function closeModal(){document.getElementById('modal').style.display='none';}
+
+  function factoryActivity(){
+    const d=player.position.distanceTo(factory.position);
+    if(d>15){toast('Factory is too far away','Travel to the GALVANIZING FACTORY in the industrial zone.');return;}
+    modal(`<h2>🏭 Galvanizing Factory</h2>
+      <p>You are coating a steel beam with zinc. Run the real process in sequence.</p>
+      <div class="grid">
+        <button class="secondary" id="f1">1. CLEAN STEEL</button>
+        <button class="secondary" id="f2" disabled>2. LOWER INTO ZINC</button>
+        <button class="secondary" id="f3" disabled>3. COOL + INSPECT</button>
+      </div>
+      <div class="chem" id="factoryExplain">Cleaning removes contaminants so the zinc can bond to the steel surface.</div>
+      <p id="factoryStatus"><b>Status:</b> waiting for Step 1.</p>
+      <button class="secondary" id="closeFactory">CLOSE</button>`);
+    let step=0;
+    const f1=document.getElementById('f1'),f2=document.getElementById('f2'),f3=document.getElementById('f3'),status=document.getElementById('factoryStatus'),ex=document.getElementById('factoryExplain');
+    f1.onclick=()=>{step=1;f1.disabled=true;f2.disabled=false;status.innerHTML='<b>Status:</b> surface cleaned.';ex.textContent='A clean surface allows a continuous zinc coating to form.';};
+    f2.onclick=()=>{step=2;f2.disabled=true;f3.disabled=false;status.innerHTML='<b>Status:</b> zinc coating forming.';ex.textContent='The steel is coated with zinc. Zinc is more reactive than iron and can provide sacrificial protection if the coating is locally damaged.';zincVat.material.emissive=new THREE.Color(0x667b82);zincVat.material.emissiveIntensity=.8;};
+    f3.onclick=()=>{step=3;state.factoryDone=true;state.xp+=300;state.inventory.zinc+=5;status.innerHTML='<b>Status:</b> galvanized beam complete. +5 zinc resources.';ex.textContent='Result: the barrier blocks the environment, while zinc also protects exposed steel electrochemically because zinc oxidizes more readily than iron.';updateUI();checkCompletion();};
+    document.getElementById('closeFactory').onclick=closeModal;
+  }
+
+  function shipActivity(){
+    const d=player.position.distanceTo(harbor.position);
+    if(d>18){toast('Harbor is too far away','Travel to the HARBOR SHIP LAB on the coast.');return;}
+    modal(`<h2>🚢 Harbor Sacrificial Protection Lab</h2>
+      <p>The steel ship hull is exposed to salt water. Install magnesium and simulate five years.</p>
+      <div class="grid">
+        <button class="secondary" id="installMg">INSTALL MAGNESIUM</button>
+        <button class="secondary" id="shipTime" disabled>SIMULATE 5 YEARS</button>
+      </div>
+      <div class="chem" id="shipExplain">Magnesium is more reactive than iron. If electrically connected to the steel hull, magnesium preferentially oxidizes.</div>
+      <p id="shipStatus"><b>Hull:</b> exposed to sea water.</p>
+      <button class="secondary" id="closeShip">CLOSE</button>`);
+    document.getElementById('installMg').onclick=()=>{
+      shipMg.visible=true;document.getElementById('shipTime').disabled=false;document.getElementById('shipStatus').innerHTML='<b>Hull:</b> magnesium anode attached.';
+    };
+    document.getElementById('shipTime').onclick=()=>{
+      state.shipDone=true;state.xp+=350;shipMg.scale.x=.78;shipHull.material.color.set(0x566b74);
+      document.getElementById('shipStatus').innerHTML='<b>After 5 years:</b> magnesium has been consumed while the steel hull remains much better protected.';
+      document.getElementById('shipExplain').innerHTML='<b>Cause and effect:</b> Mg → Mg²⁺ + 2e⁻. Magnesium supplies electrons and oxidizes instead of the iron/steel hull.';
+      updateUI();checkCompletion();
+    };
+    document.getElementById('closeShip').onclick=closeModal;
+  }
+
+  // Nano mode geometry
+  const nano=new THREE.Group();nano.visible=false;scene.add(nano);
+  for(let x=-4;x<=4;x+=2)for(let z=-4;z<=4;z+=2){
+    const atom=new THREE.Mesh(new THREE.SphereGeometry(.55,18,18),new THREE.MeshStandardMaterial({color:0x7ba3b5,metalness:.7,roughness:.25,emissive:0x10242c,emissiveIntensity:.5}));
+    atom.position.set(x,1,z);nano.add(atom);
+  }
+  const electrons=[];
+  for(let i=0;i<14;i++){
+    const e=new THREE.Mesh(new THREE.SphereGeometry(.12,10,10),new THREE.MeshBasicMaterial({color:0x68e8ff}));
+    e.position.set(THREE.MathUtils.randFloatSpread(9),THREE.MathUtils.randFloat(.5,2.7),THREE.MathUtils.randFloatSpread(9));nano.add(e);electrons.push(e);
+  }
+  nano.position.set(0,0,-110);
+
+  function nanoActivity(){
+    const d=player.position.distanceTo(portal.position);
+    if(d>15){toast('Portal is too far away','Travel to the NANO REDOX PORTAL on the dry ridge.');return;}
+    modal(`<h2>⚛️ Nano Redox World</h2>
+      <p>At the corrosion site, iron atoms can lose electrons. Run the microscopic visualization.</p>
+      <div class="chem"><b>Oxidation:</b> Fe → Fe²⁺ + 2e⁻<br><b>Key idea:</b> oxidation is loss of electrons. Reduction occurs elsewhere at the same time, so corrosion is an electrochemical redox process.</div>
+      <button class="primary" id="enterNano">ENTER ATOMIC SCALE</button>
+      <button class="secondary" id="closeNano">CLOSE</button>`);
+    document.getElementById('enterNano').onclick=()=>{
+      closeModal();nano.visible=true;world.visible=false;factory.visible=false;harbor.visible=false;portal.visible=false;
+      player.position.set(0,0,-104);state.nanoDone=true;state.xp+=350;toast('Atomic scale','Follow the glowing electrons leaving oxidized iron atoms.');updateUI();checkCompletion();
+      setTimeout(()=>{world.visible=true;factory.visible=true;harbor.visible=true;portal.visible=true;nano.visible=false;player.position.set(27,0,-19);toast('Returned to RustCraft','Macroscopic rust is the visible result of microscopic redox chemistry.');},11000);
+    };
+    document.getElementById('closeNano').onclick=closeModal;
+  }
+
+  function compareExperiment(){
+    if(state.builds.length<4){toast('Build more samples','Place at least four metal samples before running the comparison.');return;}
+    const groups={steel:[],paint:[],zinc:[],mg:[]};
+    state.builds.forEach(b=>{if(groups[b.kind])groups[b.kind].push(b.health)});
+    const avg=k=>groups[k].length?groups[k].reduce((a,v)=>a+v,0)/groups[k].length:null;
+    state.compareDone=true;state.xp+=180;updateUI();checkCompletion();
+    modal(`<h2>📊 Protection Comparison</h2>
+      <p>This comparison uses the structures you actually built and simulated.</p>
+      <div class="grid">
+        <div class="chip"><b>Bare steel</b><br>${avg('steel')===null?'No sample':avg('steel').toFixed(1)+'% integrity'}</div>
+        <div class="chip"><b>Painted</b><br>${avg('paint')===null?'No sample':avg('paint').toFixed(1)+'% integrity'}</div>
+        <div class="chip"><b>Galvanized</b><br>${avg('zinc')===null?'No sample':avg('zinc').toFixed(1)+'% integrity'}</div>
+        <div class="chip"><b>Steel + Mg</b><br>${avg('mg')===null?'No sample':avg('mg').toFixed(1)+'% integrity'}</div>
+      </div>
+      <div class="chem">Try placing identical samples in the same zone and advancing time. The protection method is then the main variable you are changing.</div>
+      <button class="secondary" id="closeCompare">CLOSE</button>`);
+    document.getElementById('closeCompare').onclick=closeModal;
+  }
+
+  // ---------- Mission completion ----------
+  function checkCompletion(){
+    const buildScore=Math.min(1,state.builds.length/12);
+    const timeScore=Math.min(1,state.years/10);
+    const labs=(state.factoryDone?1:0)+(state.shipDone?1:0)+(state.nanoDone?1:0)+(state.compareDone?1:0);
+    const labScore=labs/4;
+    const integrityScore=Math.min(1,averageIntegrity()/70);
+    const p=(buildScore*.25+timeScore*.2+labScore*.35+integrityScore*.2)*100;
+    document.getElementById('missionProgress').style.width=p+'%';
+    if(state.builds.length>=12&&state.years>=10&&labs===4&&averageIntegrity()>=70&&!window.__won){
+      window.__won=true;state.xp+=1600;
+      setTimeout(()=>modal(`<h2>🏙️ Corrosion-safe city complete</h2>
+      <p>You finished the build challenge, ran the galvanizing process, protected the ship sacrificially, observed electron loss at atomic scale, and survived at least 10 simulated years.</p>
+      <div class="chem"><b>Final concept map:</b><br>
+      Corrosion is a redox process → water/oxygen enable rusting → salts accelerate electrochemical attack → barriers isolate metal → zinc protects by coating + sacrificial action → magnesium protects by preferential oxidation.</div>
+      <p><b>Average structural integrity:</b> ${averageIntegrity().toFixed(1)}% &nbsp; <b>XP:</b> ${Math.round(state.xp)}</p>
+      <button class="primary" id="continueBtn">CONTINUE SANDBOX</button>`),500);
+      setTimeout(()=>{const b=document.getElementById('continueBtn');if(b)b.onclick=closeModal;},600);
+    }
+  }
+
+  // ---------- UI ----------
+  let toastTimer;
+  function toast(a,b=''){
+    const el=document.getElementById('toast');el.querySelector('b').textContent=a;el.querySelector('small').textContent=b;
+    el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
+  }
+  function selectKind(k){
+    state.selected=k;document.querySelectorAll('.slot').forEach(x=>x.classList.toggle('active',x.dataset.kind===k));
+    toast('Selected',kindLabel(k));
+  }
+  function updateUI(){
+    document.getElementById('year').textContent=state.years;document.getElementById('blockCount').textContent=state.builds.length;
+    document.getElementById('integrity').textContent=averageIntegrity().toFixed(0)+'%';document.getElementById('xp').textContent=Math.round(state.xp);
+    document.getElementById('weatherStat').textContent=weatherModes[state.weatherIndex].name;
+    document.getElementById('invSteel').textContent=state.inventory.steel;document.getElementById('invPaint').textContent=state.inventory.paint;
+    document.getElementById('invZinc').textContent=state.inventory.zinc;document.getElementById('invMg').textContent=state.inventory.mg;
+    checkCompletion();
+  }
+
+  document.querySelectorAll('.slot').forEach(x=>x.onclick=()=>selectKind(x.dataset.kind));
+  document.getElementById('year1').onclick=()=>simulate(1);document.getElementById('year5').onclick=()=>simulate(5);
+  document.getElementById('weatherBtn').onclick=cycleWeather;document.getElementById('dayBtn').onclick=toggleDay;
+  document.getElementById('factoryBtn').onclick=factoryActivity;document.getElementById('shipBtn').onclick=shipActivity;document.getElementById('nanoBtn').onclick=nanoActivity;
+  document.getElementById('resetBtn').onclick=()=>location.reload();
+
+  // ---------- Input / camera ----------
+  function requestPointer(){renderer.domElement.requestPointerLock?.();}
+  renderer.domElement.addEventListener('click',e=>{
+    if(!state.started)return;
+    if(!state.pointerLocked){requestPointer();return;}
+    raycaster.setFromCamera(center,camera);
+    const buildHits=raycaster.intersectObjects(state.builds.map(b=>b.mesh),false);
+    const terrainHits=raycaster.intersectObjects([ground,coast,dry,industrial],false);
+    if(buildHits.length){
+      const hit=buildHits[0],n=hit.face?.normal?.clone()||new THREE.Vector3(0,1,0);n.transformDirection(hit.object.matrixWorld);
+      placeBuild(hit.point.clone().add(n.multiplyScalar(.8)),n);
+    }else if(terrainHits.length)placeBuild(terrainHits[0].point);
+  });
+  renderer.domElement.addEventListener('contextmenu',e=>{
+    e.preventDefault();if(!state.started)return;raycaster.setFromCamera(center,camera);
+    const hits=raycaster.intersectObjects(state.builds.map(b=>b.mesh),false);if(hits.length)removeBuild(hits[0].object.userData.build);
+  });
+  document.addEventListener('pointerlockchange',()=>state.pointerLocked=document.pointerLockElement===renderer.domElement);
+  document.addEventListener('mousemove',e=>{
+    if(!state.pointerLocked)return;
+    state.yaw-=e.movementX*.0023;state.pitch-=e.movementY*.0020;state.pitch=THREE.MathUtils.clamp(state.pitch,-.85,.35);
+  });
+  addEventListener('keydown',e=>{
+    state.keys[e.code]=true;if(e.repeat)return;
+    if(/^Digit[1-7]$/.test(e.code)){const map={Digit1:'steel',Digit2:'paint',Digit3:'zinc',Digit4:'mg',Digit5:'concrete',Digit6:'beam',Digit7:'pipe'};selectKind(map[e.code]);}
+    if(e.code==='KeyE'){findTarget();if(state.target)toast('Scanned',explain(state.target));else toast('No target','Aim at one of your built structures.');}
+    if(e.code==='KeyF')repairTarget();
+    if(e.code==='KeyQ')state.rotation-=Math.PI/2;if(e.code==='KeyR')state.rotation+=Math.PI/2;
+    if(e.code==='KeyT')simulate(1);if(e.code==='KeyY')simulate(5);
+    if(e.code==='KeyG')factoryActivity();if(e.code==='KeyH')shipActivity();if(e.code==='KeyN')nanoActivity();if(e.code==='KeyC')compareExperiment();
+    if(e.code==='Space'&&state.grounded){state.yVel=7.5;state.grounded=false;}
+  });
+  addEventListener('keyup',e=>state.keys[e.code]=false);
+
+  // mobile
+  const touch=(id,code)=>{const el=document.getElementById(id);el.addEventListener('touchstart',e=>{e.preventDefault();state.keys[code]=true},{passive:false});el.addEventListener('touchend',()=>state.keys[code]=false)};
+  touch('mL','KeyA');touch('mR','KeyD');touch('mF','KeyW');
+  document.getElementById('mScan').onclick=()=>{findTarget();if(state.target)toast('Scanned',explain(state.target));};
+  document.getElementById('mBuild').onclick=()=>{const dir=new THREE.Vector3(Math.sin(state.yaw),0,-Math.cos(state.yaw));placeBuild(player.position.clone().add(dir.multiplyScalar(3)).setY(0));};
+
+  // ---------- XR graceful support ----------
+  async function enterXR(mode){
+    if(!navigator.xr){toast('WebXR unavailable','This browser/device does not expose WebXR. The normal 3D game still works.');return;}
+    try{
+      const ok=await navigator.xr.isSessionSupported(mode);if(!ok){toast('XR mode unsupported',`${mode==='immersive-vr'?'VR':'AR'} is not supported on this device/browser.`);return;}
+      const session=await navigator.xr.requestSession(mode,mode==='immersive-ar'?{optionalFeatures:['local-floor','hit-test']}:{optionalFeatures:['local-floor']});
+      renderer.xr.setSession(session);toast('XR session started','Use your headset/device controls to explore.');
+    }catch(err){toast('Could not start XR','XR normally requires HTTPS/localhost and a compatible device.');console.warn(err);}
+  }
+  document.getElementById('vrBtn').onclick=()=>enterXR('immersive-vr');document.getElementById('arBtn').onclick=()=>enterXR('immersive-ar');
+
+  // ---------- Start ----------
+  document.getElementById('startBtn').onclick=()=>{
+    state.started=true;document.getElementById('startScreen').style.display='none';requestPointer();
+    toast('RustCraft loaded','Explore the zones, build samples, then use T/Y to accelerate time.');
+  };
+
+  // ---------- Animation / movement ----------
+  const clock=new THREE.Clock();
+  function move(dt,time){
+    if(!state.started)return;
+    const fwd=new THREE.Vector3(Math.sin(state.yaw),0,-Math.cos(state.yaw)),right=new THREE.Vector3(Math.cos(state.yaw),0,Math.sin(state.yaw));
+    const v=new THREE.Vector3();
+    if(state.keys.KeyW)v.add(fwd);if(state.keys.KeyS)v.sub(fwd);if(state.keys.KeyD)v.add(right);if(state.keys.KeyA)v.sub(right);
+    const speed=(state.keys.ShiftLeft||state.keys.ShiftRight)?10.5:6.6;
+    if(v.lengthSq()>0){
+      v.normalize();player.position.addScaledVector(v,speed*dt);player.rotation.y=Math.atan2(v.x,v.z);
+      legL.rotation.x=Math.sin(time*10)*.45;legR.rotation.x=-legL.rotation.x;
+    }else{legL.rotation.x=legR.rotation.x=0}
+    player.position.x=THREE.MathUtils.clamp(player.position.x,-41,41);player.position.z=THREE.MathUtils.clamp(player.position.z,-41,41);
+    state.yVel-=19*dt;player.position.y+=state.yVel*dt;if(player.position.y<=0){player.position.y=0;state.yVel=0;state.grounded=true}
+    const look=new THREE.Vector3(Math.sin(state.yaw)*Math.cos(state.pitch),Math.sin(state.pitch),-Math.cos(state.yaw)*Math.cos(state.pitch));
+    const behind=new THREE.Vector3(-look.x*6.7,4.15-look.y*1.5,-look.z*6.7);
+    const desired=player.position.clone().add(behind);camera.position.lerp(desired,1-Math.exp(-dt*9));
+    camera.lookAt(player.position.clone().add(new THREE.Vector3(0,1.45,0)).add(look.multiplyScalar(3)));
+  }
+  function animateRain(dt){
+    if(!rain.visible)return;const a=rain.geometry.attributes.position.array;
+    for(let i=0;i<a.length;i+=3){a[i+1]-=dt*18;if(a[i+1]<0)a[i+1]=THREE.MathUtils.randFloat(20,32)}
+    rain.geometry.attributes.position.needsUpdate=true;
+  }
+  function animateNano(t){
+    if(!nano.visible)return;
+    electrons.forEach((e,i)=>{e.position.x+=Math.sin(t*2+i)*.018;e.position.z+=.03;if(e.position.z>5)e.position.z=-5});
+  }
+  function loop(){
+    const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
+    move(dt,t);animateRain(dt);animateNano(t);ocean.position.y=-1.2+Math.sin(t*1.4)*.07;ring.rotation.z+=dt*.55;portalCore.material.opacity=.2+.08*Math.sin(t*3);
+    renderer.render(scene,camera);
+  }
+  renderer.setAnimationLoop(loop);
+
+  addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  updateUI();updateScanner();
+})();
+</script>
+</body>
+</html>
